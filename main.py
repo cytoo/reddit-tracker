@@ -36,7 +36,8 @@ class tracker:
             for sub in reddit.subreddit(config.CHANNEL_TO_TRACK).new(limit=3):
                 if self.last_post == sub.title:
                     print("nothing new")
-                    sleep(self.wait_time)
+                    wait("NOTHING NEW")
+                print(sub.url)
                 self.url = str(sub.url)
     
                 self.file = self.url.split("/")
@@ -45,9 +46,8 @@ class tracker:
                     self.file = re.findall("/(.*?)", self.url)
                 self.file = self.file[-1]
                 if self.file == "":
-                    print("can't send this one! trying something else...")
-                    self.nothing = True
-                    break
+                    print("the file is empty... skipping...")
+                    wait("FILE IS EMPTY")
     
                 self.last_post = sub.title
     
@@ -97,7 +97,7 @@ class tracker:
                 print(f"ERROR:{e}")
 
 def main():
-    track = tracker(config.telegram_token,900)
+    track = tracker(config.telegram_token,800)
     track.get_posts()
 
 if __name__ == "__main__":
