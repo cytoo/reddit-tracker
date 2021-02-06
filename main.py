@@ -47,7 +47,7 @@ class tracker:
                 if self.file == "":
                     print("can't send this one! trying something else...")
                     self.nothing = True
-                    continue
+                    break
     
                 self.last_post = sub.title
     
