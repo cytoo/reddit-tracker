@@ -36,7 +36,7 @@ class tracker:
             for sub in reddit.subreddit(config.CHANNEL_TO_TRACK).new(limit=3):
                 if self.last_post == sub.title:
                     print("nothing new")
-                    wait("NOTHING NEW")
+                    self.wait("NOTHING NEW")
                 print(sub.url)
                 self.url = str(sub.url)
     
@@ -47,7 +47,7 @@ class tracker:
                 self.file = self.file[-1]
                 if self.file == "":
                     print("the file is empty... skipping...")
-                    wait("FILE IS EMPTY")
+                    self.wait("FILE IS EMPTY")
     
                 self.last_post = sub.title
     
