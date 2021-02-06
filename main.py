@@ -40,11 +40,11 @@ class tracker:
                 self.url = str(sub.url)
     
                 self.file = self.url.split("/")
-                self.caption = f"{sub.title}\n\n{self.chat}"
+                self.caption = f"{sub.title}\n\n@{self.chat}"
                 if len(self.file) == 0:
                     self.file = re.findall("/(.*?)", self.url)
                 self.file = self.file[-1]
-                if self.file == "" or not "." in self.file:
+                if self.file == "":
                     print("can't send this one! trying something else...")
                     self.nothing = True
                     continue
@@ -65,7 +65,7 @@ class tracker:
     
                     else:
                         self.nothing = True
-                        continue
+                        break
                 except Exception as e:
                     print("ERROR at image download: " + str(e))
             try:
