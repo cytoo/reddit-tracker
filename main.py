@@ -58,6 +58,7 @@ class tracker:
                 file = self.extract_file_name(url)
                 self.file = file
                 self.url = url
+                self.last_post_title = title
                 self.caption = f"{title}\n\n@{self.chat}"
                 if file.endswith("jepg") or file.endswith("jpg") or file.endswith("png"):
                     self.is_photo = True
