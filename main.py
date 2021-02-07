@@ -46,7 +46,7 @@ class tracker:
             if len(file) == 0:
                 continue
             posts.update({post.title:post.url})
-            return posts
+        return posts
 
     def parse_posts(self):
         while True:
