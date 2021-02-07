@@ -1,4 +1,4 @@
-import praw,config,re,requests,os
+import praw, config, re, requests, os
 from time import sleep
 from telegram.ext import *
 
@@ -9,96 +9,101 @@ reddit = praw.Reddit(
     username=config.username,
     password=config.reddit_password
 )
+
+
 class tracker:
-    def __init__(self,token,wait_time):
-        self.last_post = ""
+    def __init__(self, token, wait_time):
         self.wait_time = wait_time
         self.is_photo = False
-        self.is_video = False
         self.is_gif = False
         self.nothing = False
+        self.last_post_title = ""
         self.url = ""
         self.file = ""
+        self.caption = ""
         self.bot = Updater(token, use_context=True).bot
         self.chat = self.bot.getChat(config.channel).username
-        self.caption = self.chat
         print(f"bot {self.bot.name} has started working!")
-    
-    def wait(self,method:str):
+
+    def wait(self, method: str):
         print(f"waiting after method: {method}")
         sleep(self.wait_time)
-        print("waiting has finished after method {method}")
-        self.get_posts()
-    
-    def get_posts(self):
+        print(f"waiting has finished after method {method}")
+        self.parse_posts()
+
+    @staticmethod
+    def extract_file_name(url:str) -> str:
+        file = url.split("/")
+        if len(file) == 0:
+            file = re.findall("/(.*?)", url)
+        file = file[-1]
+        return file
+
+    def get_posts(self,max_posts:int) -> dict:
+        posts = {}
+        for post in reddit.subreddit(config.CHANNEL_TO_TRACK).new(limit=max_posts):
+            file = self.extract_file_name(post.url)
+            if len(file) == 0:
+                continue
+            posts.update({post.title:post.url})
+            return posts
+
+    def parse_posts(self):
         while True:
-    
-            for sub in reddit.subreddit(config.CHANNEL_TO_TRACK).new(limit=3):
-                if self.last_post == sub.title:
-                    print("nothing new")
+            posts = self.get_posts(3)
+            for title,url in posts.items():
+                url:str = url
+                if title == self.last_post_title:
                     self.wait("NOTHING NEW")
-                print(sub.url)
-                self.url = str(sub.url)
-    
-                self.file = self.url.split("/")
-                self.caption = f"{sub.title}\n\n@{self.chat}"
-                if len(self.file) == 0:
-                    self.file = re.findall("/(.*?)", self.url)
-                self.file = self.file[-1]
-                if self.file == "":
-                    print("the file is empty... skipping...")
-                    self.wait("FILE IS EMPTY")
-    
-                self.last_post = sub.title
-    
-                try:
-                    if self.url.endswith("gif"):
-                        self.is_gif = True
-                        break
-                    elif self.url.endswith("jpg") or self.url.endswith("jpeg") or self.url.endswith("png"):
-                        self.is_photo = True
-                        break
-    
-                    elif self.url.lower().endswith("mov") or self.url.lower().endswith("mp4"):
-                        self.is_video = True
-                        break
-    
-                    else:
-                        self.nothing = True
-                        break
-                except Exception as e:
-                    print("ERROR at image download: " + str(e))
+                file = self.extract_file_name(url)
+                self.file = file
+                self.url = url
+                self.caption = f"{title}\n\n@{self.chat}"
+                if file.endswith("jepg") or file.endswith("jpg") or file.endswith("png"):
+                    self.is_photo = True
+                    break
+                elif file.endswith("gif"):
+                    self.is_gif = True
+                    break
+                else:
+                    self.nothing = True
+                    continue
             try:
                 if self.nothing:
-                    print("unsupported format.. skipping...")
-                    sleep(self.wait_time)
-                    print("retrying now...")
-                    self.get_posts()
-                r = requests.get(self.url)
-                print(self.file)
-                with open(self.file,"wb") as f:
-                    f.write(r.content)
-    
-                    if self.is_video:
-                        self.bot.send_video(caption=self.caption,video=open(self.file,"rb"),chat_id=config.channel)
-                        self.wait("VIDEO")
-                    if self.is_gif:
-                        self.bot.send_animation(caption=self.caption,animation=open(self.file,"rb"),chat_id=config.channel)
-                        self.wait("GIF")
-                    if self.is_photo:
-                        self.bot.send_photo(caption=self.caption,chat_id=config.channel,photo=open(self.file,"rb"))
-                        self.wait("PHOTO")
-    
+                    self.wait("UNSUPPORTED")
+                request = requests.get(self.url)
+                with open(self.file, "wb") as f:
+                    f.write(request.content)
+
+                if self.is_gif:
+                    self.bot.send_animation(
+                        caption=self.caption,
+                        animation=open(self.file, "rb"),
+                        chat_id=config.channel
+                    )
+                    self.wait("GIF")
+
+                elif self.is_photo:
+                    self.bot.send_photo(
+                        caption=self.caption,
+                        chat_id=config.channel,
+                        photo=open(self.file, "rb")
+                    )
+                    self.wait("PHOTO")
+
                 print(self.file)
                 print("removing " + self.file)
                 os.system(f"rm -rf {self.file}")
-    
+
             except Exception as e:
                 print(f"ERROR:{e}")
 
+
 def main():
-    track = tracker(config.telegram_token,800)
-    track.get_posts()
+    track = tracker(config.telegram_token,900)
+    print(f"{track.bot.username} has started")
+    track.parse_posts()
+
 
 if __name__ == "__main__":
     main()
