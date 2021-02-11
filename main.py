@@ -45,10 +45,6 @@ class tracker:
         posts = {}
         for post in reddit.subreddit(config.CHANNEL_TO_TRACK).new(limit=max_posts):
             url:str = post.url
-            if "gfycat.com" in url:
-                url = url.replace("gfycat.com","zippy.gfycat.com") + ".mp4"
-            if ".gifv" in url:
-                url = url.replace(".gifv",".mp4")
             file = self.extract_file_name(post.url)
             print("AT_GET_POSTS: FileName: " + file)
             if len(file) == 0:
@@ -75,10 +71,10 @@ class tracker:
             self.file = file
             self.url = url
             self.caption = f"{title}\n\n@{self.chat}"
-            if file.endswith("jepg") or file.endswith("jpg") or file.endswith("png"):
+            if file.endswith(".jepg") or file.endswith(".jpg") or file.endswith(".png"):
                 self.is_photo = True
                 break
-            elif file.endswith("gif"):
+            elif file.endswith(".gif"):
                 self.is_gif = True
                 break
             elif file.endswith(".mp4"):
