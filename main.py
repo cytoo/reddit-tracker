@@ -30,7 +30,7 @@ class tracker:
         print("resetting the values!")
         self.reset_values()
         sleep(self.wait_time)
-        print(f"waiting has finished after method {method}")
+        print("waiting has finished after method {method}")
         self.parse_posts()
 
     @staticmethod
@@ -71,7 +71,7 @@ class tracker:
             self.file = file
             self.url = url
             self.caption = f"{title}\n\n@{self.chat}"
-            if file.endswith(".jepg") or file.endswith(".jpg") or file.endswith(".png"):
+            if file.endswith(".jpeg") or file.endswith(".jpg") or file.endswith(".png"):
                 self.is_photo = True
                 break
             elif file.endswith(".gif"):
